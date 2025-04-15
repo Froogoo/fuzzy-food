@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<canvas id="canvas-scattering" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999;"></canvas>
+<head>
+  <meta charset="UTF-8" />
+  <title>Food Spinner</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 30px;
+      gap: 50px;
+    }
+
+    .wheel-container {
+      position: relative;
+    }
+
+    #wheel {
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      border: 10px solid #ff80bf;
+      position: relative;
+      transition: transform 5s ease-out;
+    }
+
+    .pointer {
+      width: 0;
+      height: 0;
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-bottom: 20px solid rgb(247, 193, 193);
+      position: absolute;
+      bottom: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar button:nth-of-type(1) {
+      background-color: #ff80bf;
+      color: rgb(100, 72, 72);
+      font-size: 1.4em;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      font-weight: bold;
+      box-shadow: 0 4px 8px rgba(255, 105, 180, 0.3);
+      transition: background-color 0.3s, transform 0.3s;
+      margin-top: 20px;
+    }
+
+    /* Button Hover Effect */
+    .sidebar button:hover {
+      background-color: #ff5fa8;
+      transform: scale(1.05);
+    }
+
+    /* Result Styling */
+    .result {
+      font-size: 1.2em;
+      color: #f4cadf;
+      margin-top: 20px;
+    }
+    .food-option {
+      margin: 5px 0;
+    }
+
+    /* button { */
+      /* margin-top: 20px; */
+      /* padding: 10px 20px; */
+      /* background: #2a9d8f; */
+      /* color: white; */
+      /* border: none; */
+      /* border-radius: 8px; */
+      /* cursor: pointer; */
+    /* } */
+/*  */
+    /* .result { */
+      /* margin-top: 20px; */
+      /* font-size: 1.2em; */
+      /* font-weight: bold; */
+      /* color: #264653; */
+    /* } */
+    #slot-machine {
+      font-size: 2.5em;
+      height: 70px;
+      width: 250px;
+      line-height: 70px;
+      border-radius: 20px;
+      background: linear-gradient(145deg, #ffd6ec, #ffeaf5);
+      box-shadow: 0 4px 8px rgba(255, 105, 180, 0.3);
+      border: 3px solid #ff80bf;
+      margin: 0 auto 10px;
+      overflow: hidden;
+      color: #d63384;
+    }
+
+    #result {
+      margin-top: 20px;
+      font-size: 1.4em;
+      color: #ff69b4;
+    }
+
+    .spin-button {
+      background-color: #ff80bf;
+      color: white;
+      font-size: 1.2em;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 15px;
+      cursor: pointer;
+      font-weight: bold;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+      transition: 0.3s;
+    }
+
+    .spin-button:hover {
+      background-color: #ff5fa8;
+    }
+
+    #calendar-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      text-align: center;
+      z-index: 999;
+    }
+
+    #google-calendar {
+      width: 900px;
+      height: 350px;
+      border: 2px solid #ff6cb5;
+      border-radius: 15px;
+      box-shadow: 0 4px 8px rgba(255, 105, 180, 0.3);
+    }
+
+    #calendar-container h2 {
+      color: #d63384;
+      font-size: 1.6em;
+      margin-bottom: 10px;
+    }
+
+    .add-food-container {
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      color: #fdeff6;
+    }
+
+      </style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <h3>Select Foods</h3>
+    <div id="food-list"></div>
+    <button onclick="spinWheel()">SPINNNNNNN</button>
+    <div class="result" id="result"></div>
+  </div>
+  
+  <div style="margin-top: 30px;">
+    <h3>Wishlist Notes</h3>
+    <textarea id="wishlist-notes" rows="6" cols="30" placeholder="Write down your cravings..."></textarea>
+  </div>
+
+  <div class="add-food-container">
+  <!-- <div style="margin-bottom: 10px;"> -->
+    <input type="text" id="new-food" placeholder="Add new food..." />
+    <button onclick="addFood()"> + Add</button>
+  </div>
+
+  <div class="wheel-container">
+    <div class="pointer"></div>
+    <canvas id="wheel" width="300" height="300"></canvas>
+  </div>
+
+  <!-- <div id="slot-machine" style="font-size: 2em; height: 60px; overflow: hidden; border: 2px solid #000; width: 200px; text-align: center;"></div> -->
+  <!-- <button onclick="startSlot()">🎰 Spin Slot</button> -->
+  <div>
+    <div id="slot-machine">Readddyyy?</div>
+    <button class="spin-button" onclick="startSlot()">Spin Me!</button>
+    <div id="result"></div>
+  </div>
+
+  <!-- src="https://calendar.google.com/calendar/embed?src=oo3k7847aafr8sllgn6laalgkc@group.calendar.google.com&ctz=America/Los_Angeles&" -->
+
+  <div id="calendar-container">
+    <h2>US Bank Food Truck Calendar</h2>
+    <iframe 
+    id="google-calendar" 
+    src="https://calendar.google.com/calendar/embed?src=oo3k7847aafr8sllgn6laalgkc@group.calendar.google.com&ctz=America/Los_Angeles&" 
+    frameborder="0" 
+    scrolling="no">
+    </iframe>
+  </div>
+  <script>
+    // const allFoods = ['Pizza', 'Sushi', 'Burger', 'Tacos', 'Pasta', 'Salad', 'Ramen', 'Curry'];
+
+    let allFoods = JSON.parse(localStorage.getItem('customFoods') || '["SweetGreen", "Picnic", "Pho", "Pizza(the good one)", "mas", "sth new", "Ramen", "FoodTruck"]');
+
+    function updateFoodList() {
+      const foodListDiv = document.getElementById('food-list');
+      foodListDiv.innerHTML = '';
+      allFoods.forEach(food => {
+        const div = document.createElement('div');
+        div.className = 'food-option';
+        div.innerHTML = `
+          <input type="checkbox" checked value="${food}" /> ${food}
+          <button onclick="removeFood('${food}')" style="margin-left: 5px; color: red; background: none; border: none;">✖</button>
+        `;
+        foodListDiv.appendChild(div);
+      });
+
+      drawWheel(getSelectedFoods());
+      localStorage.setItem('customFoods', JSON.stringify(allFoods));
+    }
+
+    function addFood() {
+      const newFood = document.getElementById('new-food').value.trim();
+      if (newFood && !allFoods.includes(newFood)) {
+        allFoods.push(newFood);
+        updateFoodList();
+        document.getElementById('new-food').value = '';
+      }
+    }
+  function addFood() {
+    const newFood = document.getElementById('new-food').value.trim();
+    if (newFood && !allFoods.includes(newFood)) {
+      allFoods.push(newFood);
+      updateFoodList();
+      document.getElementById('new-food').value = '';
+    }
+  }
+    function removeFood(food) {
+      allFoods = allFoods.filter(f => f !== food);
+      updateFoodList();
+    }
+
+    let angle = 0;
+
+    const foodListDiv = document.getElementById('food-list');
+    const wheelCanvas = document.getElementById('wheel');
+    const ctx = wheelCanvas.getContext('2d');
+
+    allFoods.forEach(food => {
+      const div = document.createElement('div');
+      div.className = 'food-option';
+      div.innerHTML = `<input type="checkbox" checked value="${food}" /> ${food}`;
+      foodListDiv.appendChild(div);
+    });
+
+    function getSelectedFoods() {
+      return Array.from(document.querySelectorAll('#food-list input:checked')).map(i => i.value);
+    }
+
+
+    function drawWheel(foods) {
+      const num = foods.length;
+      const arc = 2 * Math.PI / num;
+      ctx.clearRect(0, 0, 300, 300);
+
+      for (let i = 0; i < num; i++) {
+        const start = i * arc;
+        ctx.beginPath();
+        ctx.fillStyle = `hsl(${(i * 360 / num)}, 70%, 60%)`;
+        ctx.moveTo(150, 150);
+        ctx.arc(150, 150, 140, start, start + arc);
+        ctx.fill();
+        ctx.save();
+
+        // Add food labels
+        ctx.translate(150, 150);
+        ctx.rotate(start + arc / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 14px sans-serif";
+        ctx.fillText(foods[i], 130, 5);
+        ctx.restore();
+      }
+    }
+
+    function spinWheel() {
+      const foods = getSelectedFoods();
+      if (foods.length === 0) {
+        alert("Select at least one food!");
+        return;
+      }
+
+      drawWheel(foods);
+
+      const spins = Math.floor(Math.random() * 5) + 5;
+      const segmentAngle = 360 / foods.length;
+      const stopAt = Math.floor(Math.random() * foods.length);
+      const finalAngle = 360 * spins + (stopAt * segmentAngle) + segmentAngle / 2;
+
+      angle += finalAngle;
+      wheelCanvas.style.transform = `rotate(${angle}deg)`;
+
+      const winner = foods[foods.length - 1 - stopAt]; // Adjusted for canvas spin
+      // setTimeout(() => {
+      //   document.getElementById('result').textContent = `🎉 You got: ${winner}!`;
+      // }, 5200);
+    }
+    const wishlistBox = document.getElementById('wishlist-notes');
+    wishlistBox.value = localStorage.getItem('wishlist_notes') || "";
+    wishlistBox.addEventListener('input', () => {
+    localStorage.setItem('wishlist_notes', wishlistBox.value);
+    });
+
+  function startSlot() {
+    const foods = getSelectedFoods(); // make sure this returns weighted items
+    if (!foods.length) return alert("No food selected!");
+
+    const slot = document.getElementById('slot-machine');
+    const result = document.getElementById('result');
+    let i = 0;
+    const spin = setInterval(() => {
+      const randFood = foods[Math.floor(Math.random() * foods.length)];
+      slot.textContent = randFood;
+      i++;
+      if (i > 15) { // slow down after N spins
+        clearInterval(spin);
+        document.getElementById('result').textContent = `🎉 You got: ${randFood}`;
+        Confetti();
+      }
+    }, 80);
+}
+
+  function Confetti() {
+  const container = document.getElementById('result');
+  const rect = container.getBoundingClientRect();
+  const padding = 100;
+
+  const canvas = document.createElement('canvas');
+  canvas.style.position = 'absolute';
+  canvas.style.pointerEvents = 'none';
+  canvas.style.left = `${rect.left}px`;
+  canvas.style.top = `${rect.top}px`;
+  canvas.width = rect.width
+  canvas.height = rect.height + padding * 2;
+  canvas.id = 'confetti-canvas';
+
+  document.body.appendChild(canvas);
+
+  const ctx = canvas.getContext('2d');
+  const confetti = [];
+  const colors = ['#ff6cb5', '#d63384', '#ffffff', '#ff80bf'];
+
+  for (let i = 0; i < 100; i++) { // Increased amount of confetti
+    const angle = Math.random() * 2 * Math.PI;
+    const speed = Math.random() * 3 + 1;
+    confetti.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      radius: Math.random() * 6 + 4,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      xVelocity: Math.random() * 4 - 2,
+      yVelocity: Math.random() * 3 + 2,
+      tilt: Math.random() * 10 - 5
+    });
+  }
+
+  const draw = () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    confetti.forEach(p => {
+      ctx.beginPath();
+      ctx.globalAlpha = p.opacity; //wtf
+      ctx.arc(p.x, p.y, p.radius, 0, 2 * Math.PI);
+      ctx.fillStyle = p.color;
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1; // Reset alpha for other drawings
+  };
+
+  const update = () => {
+    confetti.forEach(p => {
+      p.x += p.xVelocity;
+      p.y += p.yVelocity;
+      p.tilt -= 0.02;
+    });
+  };
+
+  let animationFrame;
+  const animate = () => {
+    update();
+    draw();
+    animationFrame = requestAnimationFrame(animate);
+  };
+  animate();
+
+  // Stop and remove the canvas after 2 seconds
+  setTimeout(() => {
+    cancelAnimationFrame(animationFrame);
+    document.body.removeChild(canvas);
+  }, 5000);
+}
+
+
+    // Initial draw
+    drawWheel(getSelectedFoods());
+  </script>
+
+</body>
+</html>
